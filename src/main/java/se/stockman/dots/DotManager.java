@@ -17,7 +17,7 @@ public class DotManager {
     private ExecutorService executorService = Executors.newCachedThreadPool();
     private CountDownLatch latch;
 
-    private State state;
+    private final State state = new State();
 
     private Random generator = new Random();
 
@@ -32,6 +32,10 @@ public class DotManager {
         for (int i = 0; i < settings.getDotCount(); i++) {
             movingDots.add(new Dot(generator.nextInt(settings.getWindowWidth()), generator.nextInt(settings.getWindowHeight())));
         }
+
+        state.movingCount = movingDots.size();
+        state.frozenCount = frozenDots.size();
+        state.processingStepTime = 0;
     }
 
     public List<Dot> getMovingDots() {
@@ -45,7 +49,7 @@ public class DotManager {
     public void executeNextStep() {
         long t1 = System.currentTimeMillis();
 
-        final int segmentSize = 500;
+        final int segmentSize = settings.getDotCount() / 16;
         int numberOfSegments = (int) Math.ceil(movingDots.size() / (float) segmentSize);
         latch = new CountDownLatch(numberOfSegments);
 
@@ -70,7 +74,9 @@ public class DotManager {
             long t2 = System.currentTimeMillis();
             int timeDiff = (int) (t2 - t1);
 
-            state = new State(movingDots.size(), timeDiff);
+            state.setFrozenCount(frozenDots.size());
+            state.setMovingCount(movingDots.size());
+            state.setProcessingStepTime(timeDiff);
         } catch (InterruptedException E) {
             System.err.println("Interrupted");
         }
@@ -95,32 +101,39 @@ public class DotManager {
     private void detectCollisions(int start, int end) {
         for (int i = start; i < end; i++) {
             //Kolla om krock med vägg
-            if ((movingDots.get(i).getX() < settings.getDotRadius() || movingDots.get(i).getY() < settings.getDotRadius()
-                || movingDots.get(i).getX() > settings.getWindowWidth() - settings.getDotRadius()
-                || movingDots.get(i).getY() > settings.getWindowHeight() - settings.getDotRadius())
-                && settings.isStickToWall()) {
-                movingDots.get(i).setFrozen(true);
+            if (settings.isStickToWall()) {
+                if (isWallCollision(i)) {
+                    movingDots.get(i).setFrozen(true);
+                    break;
+                }
             }
 
             //Kolla efter krock med stillstående
-            for (int j = 0; j < frozenDots.size() && i < movingDots.size(); j++) {
-                if (isCollision(i, j) && i != j) {
+            for (int j = 0; j < frozenDots.size(); j++) {
+                if (isCollision(i, j)) {
                     movingDots.get(i).setFrozen(true);
                     break;
                 }
             }
 
             //Om krock mellan 2 stycken rörande
-            if (settings.isStickToEachOther() && movingDots.size() > 0) {
+            if (settings.isStickToEachOther()) {
                 for (int j = 0; j < movingDots.size() && i < movingDots.size(); j++) {
                     if ((dist(movingDots.get(i), movingDots.get(j)) < settings.getDotRadius() * 1.2) && i != j) {
                         movingDots.get(i).setFrozen(true);
                         movingDots.get(j).setFrozen(true);
                     }
                 }
-
             }
         }
+    }
+
+    private boolean isWallCollision(int i) {
+        Dot dot = movingDots.get(i);
+        return dot.getX() < settings.getDotRadius()
+            || dot.getY() < settings.getDotRadius()
+            || dot.getX() > settings.getWindowWidth() - settings.getDotRadius()
+            || dot.getY() > settings.getWindowHeight() - settings.getDotRadius();
     }
 
     private boolean isCollision(int i, int j) {
@@ -172,19 +185,27 @@ public class DotManager {
     }
 
     public State getState() {
-        if (state == null) {
-            return new State(movingDots.size(), -1);
-        }
         return state;
     }
 
     public static class State {
         private int movingCount;
+        private int frozenCount;
         private int processingStepTime;
 
-        public State(int movingCount, int processingStepTime) {
+        public void setMovingCount(int movingCount) {
             this.movingCount = movingCount;
+        }
+
+        public void setProcessingStepTime(int processingStepTime) {
             this.processingStepTime = processingStepTime;
+        }
+
+        public void setFrozenCount(int frozenCount) {
+            this.frozenCount = frozenCount;
+        }
+
+        public State() {
         }
 
         public int getMovingCount() {
@@ -194,6 +215,11 @@ public class DotManager {
         public int getProcessingStepTime() {
             return processingStepTime;
         }
+
+        public int getFrozenCount() {
+            return frozenCount;
+        }
+
     }
 
 }
