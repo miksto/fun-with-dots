@@ -5,7 +5,7 @@ import se.stockman.dots.settings.Settings;
 import se.stockman.dots.settings.SettingsFrame;
 
 public class Simulation {
-    private static final long REPAINT_INTERVAL = 1000 / 30;
+    private static final long REPAINT_INTERVAL = 2000;
     private SimulationFrame simulationFrame;
     private DotManager dotManager;
     private Runnable simulationStepRunnable = new Runnable() {
@@ -24,15 +24,11 @@ public class Simulation {
                 long t2 = System.currentTimeMillis();
 
                 if (t2 - t1 > REPAINT_INTERVAL) {
-                    long t3 = System.currentTimeMillis();
                     simulationFrame.update();
-                    long t4 = System.currentTimeMillis();
-                    System.out.println("PAINTING: " + (t4 - t3));
-                    t1 = t2;
-                } else {
-                    System.out.println("Skipping");
+                    t1 = System.currentTimeMillis();
                 }
             }
+            simulationFrame.update();
         }
     };
 

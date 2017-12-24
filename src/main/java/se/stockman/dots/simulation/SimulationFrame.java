@@ -84,6 +84,9 @@ public class SimulationFrame extends JFrame {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+
+            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
             synchronized (SimulationFrame.this) {
                 for (Dot dot : dots) {
                     g.setColor(dot.getColor());
