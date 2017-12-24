@@ -1,6 +1,8 @@
-package se.stockman.dots;
+package se.stockman.dots.settings;
 
 public class Settings {
+    public static final int SEGMENT_COUNT = 16;
+
     private boolean stickToWall;
     private boolean stickToMiddle;
     private boolean stickToEachOther;

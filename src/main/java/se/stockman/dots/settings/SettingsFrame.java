@@ -1,4 +1,4 @@
-package se.stockman.dots;
+package se.stockman.dots.settings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,48 +8,48 @@ public class SettingsFrame extends JFrame {
     private Checkbox stickToEachOtherCheckbox;
     private Checkbox stickToMiddleCheckbox;
     private JPanel boxPanel = new JPanel();
-    private JButton startButton = new JButton("startButton!");
+    private JButton startButton = new JButton("Start!");
     private TextField radiusField = new TextField("4");
-    private TextField dotCountField = new TextField("1000");
-    private TextField windowHeightField = new TextField("500");
-    private TextField windowWidthField = new TextField("800");
+    private TextField dotCountField = new TextField("10000");
+    private TextField windowHeightField = new TextField("800");
+    private TextField windowWidthField = new TextField("1200");
 
     private Listener listener;
-
-    public void setListener(Listener listener) {
-        this.listener = listener;
-    }
 
     public SettingsFrame() {
         super("Settings");
         init();
     }
 
-    public void init() {
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
 
-        stickToWallCheckbox = new Checkbox("Väggar, och andra stillaståend", true);
+    private void init() {
+
+        stickToWallCheckbox = new Checkbox("Walls", true);
         // same but selected
-        stickToEachOtherCheckbox = new Checkbox("Varann", false);
-        stickToMiddleCheckbox = new Checkbox("Mittpunkten", false);
+        stickToEachOtherCheckbox = new Checkbox("Any other dot", false);
+        stickToMiddleCheckbox = new Checkbox("A dot in the middle", false);
         boxPanel.setLayout(new GridLayout(3, 1));
         boxPanel.add(stickToWallCheckbox);
         boxPanel.add(stickToEachOtherCheckbox);
         boxPanel.add(stickToMiddleCheckbox);
 
         setLayout(new GridLayout(6, 2));
-        add(new JLabel("Antal prickar:"));
+        add(new JLabel("Number of dots"));
         add(dotCountField);
 
-        add(new JLabel("Radie"));
+        add(new JLabel("Dot raduis"));
         add(radiusField);
 
-        add(new JLabel("Fönsterhöjd"));
+        add(new JLabel("Window height"));
         add(windowHeightField);
 
-        add(new JLabel("FönsterBredd"));
+        add(new JLabel("Window width"));
         add(windowWidthField);
 
-        add(new JLabel("Prickarna ska fastna på:"));
+        add(new JLabel("Dots stick to"));
         add(boxPanel);
 
         startButton.addActionListener(e -> listener.onStartClicked(getSettings()));

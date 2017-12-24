@@ -1,5 +1,7 @@
 package se.stockman.dots;
 
+import se.stockman.dots.settings.Settings;
+
 import java.awt.*;
 
 public class Dot {
@@ -22,12 +24,12 @@ public class Dot {
         y = randy;
     }
 
-    public void setFrozenCurrentRound(boolean frozen) {
-        this.frozenCurrentRound = frozen;
-    }
-
     public boolean isFrozenCurrentRound() {
         return frozenCurrentRound;
+    }
+
+    public void setFrozenCurrentRound(boolean frozen) {
+        this.frozenCurrentRound = frozen;
     }
 
     public boolean isFrozenPastRound() {
