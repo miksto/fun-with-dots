@@ -6,3 +6,5 @@ A dot the collides with the wall sticks to it. Other dots colliding with stuck d
 The result is an image with the dots sticking to each other interesting and beautiful ways. See the example below.
 
 ![Random dot image](docs/example_image_1.jpg)
+
+![Random dot image](docs/example_image_2.jpg)
