@@ -74,7 +74,7 @@ public class DotCollisionDetector {
     }
 
     private int getCollisionZoneStartIndex(int i, Dot movingDot) {
-        int j = i - 1;
+        int j = Math.max(i - 1, 0);
         while (j > 0) {
             if (dots.get(j).getX() < movingDot.getX() - settings.getDotRadius()) {
                 break;
