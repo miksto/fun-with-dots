@@ -5,7 +5,8 @@ import java.awt.*;
 public class Dot {
     private int x, y;
     private Color color;
-    private boolean frozen;
+    private boolean frozenCurrentRound;
+    private boolean frozenPastRound;
 
     public Dot(int x, int y, Settings settings) {
         this.x = x;
@@ -21,12 +22,20 @@ public class Dot {
         y = randy;
     }
 
-    public void setFrozen(boolean frozen) {
-        this.frozen = frozen;
+    public void setFrozenCurrentRound(boolean frozen) {
+        this.frozenCurrentRound = frozen;
     }
 
-    public boolean isFrozen() {
-        return frozen;
+    public boolean isFrozenCurrentRound() {
+        return frozenCurrentRound;
+    }
+
+    public boolean isFrozenPastRound() {
+        return frozenPastRound;
+    }
+
+    public void setFrozenPastRound(boolean frozenLastRound) {
+        this.frozenPastRound = frozenLastRound;
     }
 
     public int getX() {

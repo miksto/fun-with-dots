@@ -29,8 +29,7 @@ public class DotFrame extends JFrame {
     public void repaintDots() {
         synchronized (this) {
             dots.clear();
-            dots.addAll(dotManager.getFrozenDots());
-            dots.addAll(dotManager.getMovingDots());
+            dots.addAll(dotManager.getDots());
         }
         dotPanel.repaint();
     }
