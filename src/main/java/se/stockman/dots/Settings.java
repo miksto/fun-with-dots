@@ -10,6 +10,7 @@ public class Settings {
 
     private int windowHeight;
     private int windowWidth;
+    private int squaredDotRadius;
 
     public boolean isStickToWall() {
         return stickToWall;
@@ -49,6 +50,11 @@ public class Settings {
 
     public void setDotRadius(int dotRadius) {
         this.dotRadius = dotRadius;
+        this.squaredDotRadius = dotRadius * dotRadius;
+    }
+
+    public int getSquaredDotRadius() {
+        return squaredDotRadius;
     }
 
     public int getWindowHeight() {

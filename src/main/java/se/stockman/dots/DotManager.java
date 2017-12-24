@@ -1,9 +1,6 @@
 package se.stockman.dots;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,12 +22,12 @@ public class DotManager {
         this.settings = settings;
         if (settings.isStickToMiddle()) {
 
-            Dot middleDot = new Dot(settings.getWindowWidth() / 2, settings.getWindowHeight() / 2);
+            Dot middleDot = new Dot(settings.getWindowWidth() / 2, settings.getWindowHeight() / 2, settings);
             frozenDots.add(middleDot);
         }
 
         for (int i = 0; i < settings.getDotCount(); i++) {
-            movingDots.add(new Dot(generator.nextInt(settings.getWindowWidth()), generator.nextInt(settings.getWindowHeight())));
+            movingDots.add(new Dot(generator.nextInt(settings.getWindowWidth()), generator.nextInt(settings.getWindowHeight()), settings));
         }
 
         state.movingCount = movingDots.size();
@@ -48,14 +45,16 @@ public class DotManager {
 
     public void executeNextStep() {
         long t1 = System.currentTimeMillis();
+        movingDots.sort(Comparator.comparingInt(Dot::getX));
+        frozenDots.sort(Comparator.comparingInt(Dot::getX));
 
-        final int segmentSize = settings.getDotCount() / 16;
+        final int segmentSize = (int) Math.ceil(settings.getDotCount() / (float) 16);
         int numberOfSegments = (int) Math.ceil(movingDots.size() / (float) segmentSize);
         latch = new CountDownLatch(numberOfSegments);
 
-        for (int i = 0; i < movingDots.size(); i += segmentSize) {
-            int start = i;
-            int end = Math.min(movingDots.size(), i + segmentSize);
+        for (int i = 0; i < numberOfSegments; i++) {
+            int start = i * segmentSize;
+            int end = Math.min(movingDots.size(), start + segmentSize);
             executorService.execute(new ListSegmentRunnable(start, end));
         }
 
@@ -101,59 +100,52 @@ public class DotManager {
     private void detectCollisions(int start, int end) {
         for (int i = start; i < end; i++) {
             //Kolla om krock med vägg
+            Dot movingDot = movingDots.get(i);
             if (settings.isStickToWall()) {
-                if (isWallCollision(i)) {
-                    movingDots.get(i).setFrozen(true);
-                    break;
+                if (isWallCollision(movingDot)) {
+                    movingDot.setFrozen(true);
                 }
             }
 
-            //Kolla efter krock med stillstående
-            for (int j = 0; j < frozenDots.size(); j++) {
-                if (isCollision(i, j)) {
-                    movingDots.get(i).setFrozen(true);
-                    break;
+            if (!movingDot.isFrozen()) {
+                //Kolla efter krock med stillstående
+                for (int j = 0; j < frozenDots.size(); j++) {
+                    Dot frozenDot = frozenDots.get(j);
+                    if (frozenDot.getX() > movingDot.getX() + settings.getDotRadius()) {
+                        break;
+                    }
+
+                    if (isCollision(movingDot, frozenDot)) {
+                        movingDot.setFrozen(true);
+                        break;
+                    }
+
                 }
             }
 
             //Om krock mellan 2 stycken rörande
             if (settings.isStickToEachOther()) {
                 for (int j = 0; j < movingDots.size() && i < movingDots.size(); j++) {
-                    if ((dist(movingDots.get(i), movingDots.get(j)) < settings.getDotRadius() * 1.2) && i != j) {
-                        movingDots.get(i).setFrozen(true);
-                        movingDots.get(j).setFrozen(true);
+                    Dot movingDot2 = movingDots.get(j);
+                    if (isCollision(movingDot, movingDot2)) {
+                        movingDot.setFrozen(true);
+                        movingDot2.setFrozen(true);
                     }
                 }
             }
         }
     }
 
-    private boolean isWallCollision(int i) {
-        Dot dot = movingDots.get(i);
-        return dot.getX() < settings.getDotRadius()
-            || dot.getY() < settings.getDotRadius()
-            || dot.getX() > settings.getWindowWidth() - settings.getDotRadius()
-            || dot.getY() > settings.getWindowHeight() - settings.getDotRadius();
+    private boolean isWallCollision(Dot dot) {
+        return dot.getX() <= settings.getDotRadius()
+            || dot.getY() <= settings.getDotRadius()
+            || dot.getX() >= settings.getWindowWidth() - settings.getDotRadius()
+            || dot.getY() >= settings.getWindowHeight() - settings.getDotRadius();
     }
 
-    private boolean isCollision(int i, int j) {
-        if (i == j) {
-            return false;
-        }
-
-
-        int dotRadius = settings.getDotRadius();
-        Dot p1 = movingDots.get(i);
-        Dot p2 = frozenDots.get(j);
-
-        int dotDiameter = 2 * dotRadius;
-        if (Math.abs(p1.getX() - p2.getX()) > dotDiameter || Math.abs(p1.getY() - p2.getY()) > dotDiameter) {
-            return false;
-        }
-
-        double distance = dist(p1, p2);
-
-        return distance < dotRadius;
+    private boolean isCollision(Dot p1, Dot p2) {
+        return p1 != p2
+            && squaredDist(p1, p2) < settings.getSquaredDotRadius();
     }
 
 
@@ -178,10 +170,11 @@ public class DotManager {
         return generator.nextInt(11) - 5;
     }
 
-    private double dist(Dot p1, Dot p2) {
-        double tal1 = Math.pow((p1.getX() - p2.getX()), 2);
-        double tal2 = Math.pow((p1.getY() - p2.getY()), 2);
-        return Math.sqrt(tal1 + tal2);
+    private double squaredDist(Dot p1, Dot p2) {
+        int dist1 = p1.getX() - p2.getX();
+        int dist2 = p1.getY() - p2.getY();
+
+        return dist1 * dist1 + dist2 * dist2;
     }
 
     public State getState() {

@@ -7,10 +7,13 @@ public class Dot {
     private Color color;
     private boolean frozen;
 
-    public Dot(int x, int y) {
+    public Dot(int x, int y, Settings settings) {
         this.x = x;
         this.y = y;
-        color = new Color((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
+        color = new Color(
+            Util.mapToColor(x, settings.getWindowWidth()),
+            Util.mapToColor(y, settings.getWindowHeight()),
+            (int) (Math.random() * 255));
     }
 
     public void setPosition(int randx, int randy) {
